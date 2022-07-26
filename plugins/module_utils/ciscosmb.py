@@ -15,7 +15,7 @@
 #      this list of conditions and the following disclaimer in the documentation
 #      and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
 # IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
@@ -27,18 +27,20 @@
 #
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 import json
 import re
 
-from ansible.module_utils._text import to_text, to_native
+from ansible.module_utils._text import to_native, to_text
 from ansible.module_utils.basic import env_fallback
-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list, ComplexList
 from ansible.module_utils.connection import Connection, ConnectionError
-
+from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
+    ComplexList, to_list)
 # copy of https://github.com/napalm-automation/napalm/blob/develop/napalm/base/canonical_map.py
-from ansible_collections.community.ciscosmb.plugins.module_utils.ciscosmb_canonical_map import base_interfaces
+from ansible_collections.community.ciscosmb.plugins.module_utils.ciscosmb_canonical_map import \
+    base_interfaces
 
 _DEVICE_CONFIGS = {}
 
@@ -54,8 +56,8 @@ ciscosmb_argument_spec = {}
 
 
 def ciscosmb_split_to_tables(data):
-    TABLE_HEADER = re.compile(r"^---+ +-+.*$")
-    EMPTY_LINE = re.compile(r"^ *$")
+    TABLE_HEADER = re.compile(r'^---+ +-+.*$')
+    EMPTY_LINE = re.compile(r'^ *$')
 
     tables = dict()
     tableno = -1
@@ -72,12 +74,12 @@ def ciscosmb_split_to_tables(data):
             tabledataget = True
             lineno = 0
             tables[tableno] = dict()
-            tables[tableno]["header"] = line
-            tables[tableno]["data"] = dict()
+            tables[tableno]['header'] = line
+            tables[tableno]['data'] = dict()
             continue
 
         if tabledataget:
-            tables[tableno]["data"][lineno] = line
+            tables[tableno]['data'][lineno] = line
             lineno += 1
             continue
 
@@ -89,9 +91,9 @@ def ciscosmb_parse_table(table, allow_overflow=True, allow_empty_fields=None):
     if allow_empty_fields is None:
         allow_empty_fields = list()
 
-    fields_end = __get_table_columns_end(table["header"])
+    fields_end = __get_table_columns_end(table['header'])
     data = __get_table_data(
-        table["data"], fields_end, allow_overflow, allow_empty_fields
+        table['data'], fields_end, allow_overflow, allow_empty_fields
     )
 
     return data
@@ -99,10 +101,10 @@ def ciscosmb_parse_table(table, allow_overflow=True, allow_empty_fields=None):
 
 def __get_table_columns_end(headerline):
     """ fields length are diferent device to device, detect them on horizontal lin """
-    fields_end = [m.start() for m in re.finditer("  *", headerline.strip())]
+    fields_end = [m.start() for m in re.finditer('  *', headerline.strip())]
     # fields_position.insert(0,0)
     # fields_end.append(len(headerline))
-    fields_end.append(10000)  # allow "long" last field
+    fields_end.append(10000)  # allow 'long' last field
 
     return fields_end
 
@@ -139,7 +141,7 @@ def __get_table_data(
         if allow_overflow:
             # search for overflown fields
             for elemno in line_elems:
-                if elemno not in allow_empty_fields and line_elems[elemno] == "":
+                if elemno not in allow_empty_fields and line_elems[elemno] == '':
                     owerflow = True
                 else:
                     owerflownfields.append(elemno)
@@ -160,7 +162,7 @@ def __get_table_data(
 
 
 def ciscosmb_merge_dicts(a, b, path=None):
-    "merges b into a"
+    'merges b into a'
     if path is None:
         path = []
 
@@ -175,14 +177,14 @@ def ciscosmb_merge_dicts(a, b, path=None):
             elif a[key] == b[key]:
                 pass  # same leaf value
             else:
-                raise Exception("Conflict at %s" % ".".join(path + [str(key)]))
+                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
         else:
             a[key] = b[key]
     return a
 
 
 def interface_canonical_name(interface):
-    iftype = interface.rstrip(r"/\0123456789. ")
+    iftype = interface.rstrip(r'/\0123456789. ')
     ifno = interface[len(iftype):].lstrip()
 
     if iftype in base_interfaces:
